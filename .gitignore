@@ -1,0 +1,23 @@
+# Python
+__pycache__/
+*.pyc
+.venv/
+venv/
+*.egg-info/
+
+# AWS / secrets
+.env
+.aws/
+*.pem
+credentials.json
+terraform.tfstate*
+
+# Data / large files
+data/raw/
+*.parquet
+*.csv
+.ipynb_checkpoints/
+
+# IDE
+.vscode/settings.json
+.DS_Store
