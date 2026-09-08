@@ -16,7 +16,7 @@ from dotenv import load_dotenv
 load_dotenv()
 
 REGION = os.getenv("AWS_DEFAULT_REGION", "us-east-1")
-SCRIPT_BUCKET = os.getenv("S3_SCRIPTS_BUCKET", "your-bucket-name")
+SCRIPT_BUCKET = os.getenv("S3_SCRIPTS_BUCKET", "reg-doc-rag")
 SCRIPT_KEY = "glue_scripts/federal_register_etl.py"
 JOB_NAME = "federal-register-etl"
 GLUE_ROLE_ARN = os.getenv("GLUE_ROLE_ARN")  # IAM role Glue assumes when running

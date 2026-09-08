@@ -1,0 +1,87 @@
+# treasury_fiscal_ingestion.py — Build Checklist
+
+Keep this open in a side panel while you code. Check off each step before moving to the next.
+
+---
+
+[ ] 1. IMPORTS AND ENVIRONMENT SETUP
+    - argparse, os, time, requests, boto3, load_dotenv
+    - Call load_dotenv() once, near the top
+    HINT: If os.getenv() keeps returning None later, it's usually because
+    load_dotenv() was called AFTER you tried to read the variable, or the
+    script isn't being run from inside the treasury-fiscal-pipeline folder.
+
+---
+
+[ ] 2. DEFINE CONSTANTS AND CONFIG
+    - BASE_URL = "https://api.fiscaldata.treasury.gov/services/api/fiscal_service"
+    - Read S3_RAW_BUCKET, AWS_DEFAULT_REGION etc. via os.getenv()
+    HINT: Variable names here must match your .env file EXACTLY, including
+    capitalization. S3_RAW_BUCKET in .env but S3_BUCKET in code = silent bug.
+
+---
+
+[ ] 3. CREATE YOUR BOTO3 S3 CLIENT
+    - s3 = boto3.client("s3")  -- once, outside any function
+    HINT: Don't create a new client inside every function. One client at
+    the top of the file, reused everywhere, is the standard pattern.
+
+---
+
+[ ] 4. WRITE ONE FUNCTION PER DATASET
+    - fetch_debt_to_penny()
+    - fetch_rates_of_exchange()
+    - Each one ONLY calls the API and returns records. No S3 code inside.
+    HINT: Reuse your fetch_all_pages() helper inside each of these instead
+    of duplicating pagination logic per dataset.
+
+---
+
+[ ] 5. WRITE A SEPARATE FUNCTION TO LAND DATA IN S3
+    - land_to_s3(records, dataset_name, date_str)
+    - Decide your S3 key pattern NOW, e.g.:
+      raw/treasury/{dataset_name}/year=YYYY/month=MM/day=DD/data.json
+    HINT: Write JSON Lines (one JSON object per line), not one big JSON
+    array — this is what Spark's spark.read.json() expects later in Glue.
+
+---
+
+[ ] 6. WRITE A run() FUNCTION TO TIE FETCH + LAND TOGETHER
+    - run() just calls your fetch function(s), then your land_to_s3()
+    - Keep it simple — no new logic here, just orchestration
+    HINT: If run() is getting long or has lots of if/else, that logic
+    probably belongs inside one of your smaller functions instead.
+
+---
+
+[ ] 7. ADD THE __main__ GUARD AT THE BOTTOM
+    if __name__ == "__main__":
+        # argparse setup if using CLI args
+        run()
+    HINT: This is what lets you later import fetch_debt_to_penny() from
+    another script without accidentally re-running the whole pipeline.
+
+---
+
+[ ] 8. TEST WITH print() BEFORE TESTING WITH S3 WRITES
+    - Comment out (Ctrl+/) the real S3 write temporarily
+    - print() what WOULD have been written instead
+    - Confirm the data looks right BEFORE touching S3
+    HINT: Cheaper and faster to catch bugs this way — no wasted S3 calls,
+    no cleanup needed if something's wrong with the data shape.
+
+---
+
+[ ] 9. RUN FOR REAL, THEN VERIFY IN S3
+    - Uncomment the real S3 write
+    - Run the script for real
+    - Verify with:
+      aws s3 ls s3://treasury-fiscal-pipeline/raw/ --recursive
+    HINT: If nothing shows up, double check you're pointing at the right
+    bucket name from .env, not a typo'd or hardcoded one.
+
+---
+
+REMINDER: SparkContext / GlueContext / job.init() boilerplate does NOT
+belong in this file. That only goes in the future Glue ETL script
+(treasury_fiscal_etl.py), which runs inside AWS Glue — not here.
